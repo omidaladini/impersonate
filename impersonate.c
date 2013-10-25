@@ -31,7 +31,9 @@ int geteuid() {
 
     // Get the original geteuid for fallback
     typedef uid_t (*geteuid_funcptr_t)();
-    geteuid_funcptr_t original_geteuid =  (geteuid_funcptr_t) dlsym(RTLD_NEXT, "geteuid");
+    static geteuid_funcptr_t original_geteuid = 0; 
+    if(!original_geteuid) // Cache it as static as dlsym is slow
+       original_geteuid = (geteuid_funcptr_t) dlsym(RTLD_NEXT, "geteuid");
 
     char *end_ptr;
     int euid_int = strtol(value, &end_ptr, 10);
