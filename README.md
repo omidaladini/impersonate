@@ -8,18 +8,20 @@ The original motivation for this is to easily impersonate arbitrary users while 
 Usage
 ===========
 
-impersonate UID_OR_NAME COMMAND [ARG1 [ARG2 ...]]
+Usage:  impersonate UID_OR_NAME COMMAND [ARG1 [ARG2 ...]]
 
-Example: impersonate root whoami
+Example: impersonate root whoami  
 Output: root
 
-Example: impersonate hdfs hadoop fs -cat /user/very/secure/important.txt
+Example: impersonate hdfs hadoop fs -cat /user/very/secure/important.txt  
 Output: [Super secret data here]
+
+Example: impersonate jack hadoop fs -rmr /user/jack
 
 How it works
 ===========
 
-The program dynamically generates a shared object file and places it on LD_PRELOAD so that getuid and geteuid get hijacked by the so file. 
+The program dynamically generates a shared object file and places it on LD_PRELOAD so that getuid and geteuid get hijacked by the so file. The dynamic generation of the .so file is there to hide the LD_PRELOAD step and make the utility more innocuous looking, apart from making it more portable and easier to use!
 
 Build
 ===========
