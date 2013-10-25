@@ -13,6 +13,9 @@ Usage:  impersonate UID_OR_NAME COMMAND [ARG1 [ARG2 ...]]
 Example: impersonate root whoami  
 Output: root
 
+Example: impersonate 12345 id  
+Output: uid=12345 gid=1525(omid) ...
+
 Example: impersonate hdfs hadoop fs -cat /user/very/secure/important.txt  
 Output: [Super secret data here]
 
