@@ -1,3 +1,8 @@
+/*
+  Author: Omid Aladini <omidaladini@gmail.com>
+*/
+
+
 #define _GNU_SOURCE
 
 #include <stdio.h>
