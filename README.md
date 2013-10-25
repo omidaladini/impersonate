@@ -35,5 +35,8 @@ Three step build is as follows:
 - Run xxd tool to turn shared object to a C array
 - Compile a binary and embed the shared object file to extracted on the fly.
 
+Credits
+===========
 
+Omid Aladini
 
