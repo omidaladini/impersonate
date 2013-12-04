@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 
   if(argc < 3) { 
     printf("Usage:   $ %s NAME PROG [ARG...]\n", argv[0]);
-    printf("Example: $ %s hadoop fs -mv ...\n",  argv[0]);
+    printf("Example: $ %s omid hadoop fs -mv ...\n",  argv[0]);
     return 0;
   }
 
