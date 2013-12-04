@@ -11,51 +11,38 @@
 #include <dlfcn.h>
 #include <pwd.h>
 
-#define SPOOF_UID "SPOOF_UID"
+#define SPOOF_UNAME "SPOOF_UNAME"
 
 extern char **environ;
 
 #ifdef NOMAIN
 
-int getuid() { return geteuid(); }
-
-int geteuid() {
+int getpwuid_r(uid_t uid, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result) {
     char ** env;
-    char key[10], value[10];
+    char key[20], value[20];
 
     for (env = environ; *env; ++env) {
-        sscanf(*env, "%10[^'=']=%10[^'=']", key, value); //borrowed from max key/value size = 10
-        if(strcmp(SPOOF_UID, key) == 0) 
+        sscanf(*env, "%20[^'=']=%20[^'=']", key, value); //borrowed from max key/value size = 10
+        if(strcmp(SPOOF_UNAME, key) == 0) 
             break;
     };
 
-    // Get the original geteuid for fallback
-    typedef uid_t (*geteuid_funcptr_t)();
-    static geteuid_funcptr_t original_geteuid = 0; 
-    if(!original_geteuid) // Cache it as static as dlsym is slow
-       original_geteuid = (geteuid_funcptr_t) dlsym(RTLD_NEXT, "geteuid");
+    typedef int (*getpwuid_r_funcptr_t)(uid_t uid, struct passwd *pwd, char *buf, size_t buflen, struct passwd **result);
+    static getpwuid_r_funcptr_t original_getpwuid_r = 0; 
+    if(!original_getpwuid_r) // Cache it as static as dlsym is slow
+       original_getpwuid_r = (getpwuid_r_funcptr_t) dlsym(RTLD_NEXT, "getpwuid_r");
 
-    char *end_ptr;
-    int euid_int = strtol(value, &end_ptr, 10);
-
-    if(euid_int == 0 && end_ptr == value) {
-        const struct passwd* passwd_result = getpwnam(value);
-        if(passwd_result)
-            return passwd_result->pw_uid;
-        else
-            return original_geteuid();
-    } else
-        return euid_int;
+    int orig_result = original_getpwuid_r(getuid(), pwd, buf, buflen, result);
+    (*result)->pw_name = strdup(value);  //strdup is a POSIX call
+    return orig_result;
 }
-
 #else
 
 int main(int argc, char *argv[]) {
 
   if(argc < 3) { 
-    printf("Usage:   $ %s PROG UID|NAME PROG [ARG...]\n", argv[0]);
-    printf("Example: $ %s 0 whoami\n", SPOOF_UID, argv[0]);
-    printf("Output:  $ root\n");
+    printf("Usage:   $ %s NAME PROG [ARG...]\n", argv[0]);
+    printf("Example: $ %s hadoop fs -mv ...\n",  argv[0]);
     return 0;
   }
 
@@ -76,7 +63,7 @@ int main(int argc, char *argv[]) {
   // Put the shared object in LD_PRELOAD
   // to shadow functions redefined in this file
   setenv("LD_PRELOAD", temp_file_name, 1);
-  setenv(SPOOF_UID, *(argv+1), 1);
+  setenv(SPOOF_UNAME, *(argv+1), 1);
 
   // Run the victim executable 
   execvpe(argv[2], argv+2, environ); 
